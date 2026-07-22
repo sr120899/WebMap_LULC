@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LULC Change Platform</title>
-    <script type="module" crossorigin src="/WebMap_LULC/assets/index-TyGIbnn6.js"></script>
-    <link rel="stylesheet" crossorigin href="/WebMap_LULC/assets/index-BI3_D4Nb.css">
+    <script type="module" crossorigin src="/WebMap_LULC/assets/index-DmY1meo5.js"></script>
+    <link rel="stylesheet" crossorigin href="/WebMap_LULC/assets/index-D9_hqbYc.css">
   </head>
   <body>
     <div id="app">
@@ -21,7 +21,7 @@
         <section class="panel" id="district-search-panel">
           <h2>ค้นหาพื้นที่รายเขต</h2>
           <div class="field">
-            <label for="district-search-input">พิมพ์ค้นหา</label>
+            <label for="district-search-input">พิมพ์ค้นหา หรือเลือกจากรายการ</label>
             <input
               id="district-search-input"
               list="district-options"
@@ -29,12 +29,6 @@
               autocomplete="off"
             />
             <datalist id="district-options"></datalist>
-          </div>
-          <div class="field">
-            <label for="district-select">หรือเลือกจากรายการ</label>
-            <select id="district-select">
-              <option value="">-- ทั้งหมด (กรุงเทพมหานคร) --</option>
-            </select>
           </div>
         </section>
 
@@ -57,7 +51,7 @@
         <p id="status" role="status"></p>
 
         <section id="stats" class="panel" hidden>
-          <h2>Change Summary</h2>
+          <h2>Change Summary <span id="stats-scope" class="stats-scope"></span></h2>
           <div id="stat-cards"></div>
           <h3>Main Change Transitions</h3>
           <ul id="transitions-list"></ul>
