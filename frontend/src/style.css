@@ -161,6 +161,12 @@ button#process-btn:not(:disabled):hover {
   margin: 0 0 0.75rem;
 }
 
+.stats-scope {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--accent-dark);
+}
+
 .panel h3 {
   font-size: 0.78rem;
   color: var(--text-muted);

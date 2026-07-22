@@ -58,6 +58,22 @@ def build_aoi() -> ee.Geometry:
     return ee.Geometry(geometry)
 
 
+_districts_geojson = None
+
+
+def build_district_aoi(name_en: str) -> ee.Geometry:
+    """One Bangkok khet (district) boundary, looked up by its English name."""
+    global _districts_geojson
+    if _districts_geojson is None:
+        with open(DATA_DIR / "bangkok_districts.geojson", encoding="utf-8") as f:
+            _districts_geojson = json.load(f)
+
+    for feature in _districts_geojson["features"]:
+        if feature["properties"]["name_en"] == name_en:
+            return ee.Geometry(feature["geometry"])
+    raise ValueError(f"unknown district: {name_en}")
+
+
 def build_composite(year: int, aoi: ee.Geometry) -> ee.Image:
     """Per-pixel mode of Dynamic World's 'label' band over one calendar year, clipped to the AOI."""
     dw = (

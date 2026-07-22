@@ -40,17 +40,28 @@ def _validate_year(year: int):
         raise HTTPException(400, f"year must be between {MIN_YEAR} and {MAX_YEAR}")
 
 
-@lru_cache(maxsize=32)
-def _composite_tile_url(year: int) -> str:
-    composite = pipeline.build_composite(year, _aoi)
+@lru_cache(maxsize=64)
+def _get_aoi(district: str | None):
+    if not district:
+        return _aoi
+    try:
+        return pipeline.build_district_aoi(district)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+
+
+@lru_cache(maxsize=128)
+def _composite_tile_url(year: int, district: str | None = None) -> str:
+    composite = pipeline.build_composite(year, _get_aoi(district))
     return pipeline.get_tile_url(composite)
 
 
-@lru_cache(maxsize=64)
-def _change_result(t1: int, t2: int) -> dict:
-    img_t1 = pipeline.build_composite(t1, _aoi)
-    img_t2 = pipeline.build_composite(t2, _aoi)
-    return pipeline.detect_change(img_t1, img_t2, _aoi)
+@lru_cache(maxsize=128)
+def _change_result(t1: int, t2: int, district: str | None = None) -> dict:
+    aoi = _get_aoi(district)
+    img_t1 = pipeline.build_composite(t1, aoi)
+    img_t2 = pipeline.build_composite(t2, aoi)
+    return pipeline.detect_change(img_t1, img_t2, aoi)
 
 
 @app.get("/api/health")
@@ -85,18 +96,19 @@ def tile_url(year: int):
 
 
 @app.get("/api/change")
-def change(t1: int, t2: int):
+def change(t1: int, t2: int, district: str | None = None):
     _validate_year(t1)
     _validate_year(t2)
     if t1 == t2:
         raise HTTPException(400, "t1 and t2 must differ")
     try:
-        result = _change_result(t1, t2)
+        result = _change_result(t1, t2, district)
         return {
             "t1": t1,
             "t2": t2,
-            "tile_url_t1": _composite_tile_url(t1),
-            "tile_url_t2": _composite_tile_url(t2),
+            "district": district,
+            "tile_url_t1": _composite_tile_url(t1, district),
+            "tile_url_t2": _composite_tile_url(t2, district),
             **result,
         }
     except HTTPException:

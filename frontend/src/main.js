@@ -34,15 +34,17 @@ const swipeLabelT2 = document.querySelector("#swipe-label-t2");
 const brandIcon = document.querySelector("#brand-icon");
 const districtSearchInput = document.querySelector("#district-search-input");
 const districtOptionsList = document.querySelector("#district-options");
-const districtSelect = document.querySelector("#district-select");
+const statsScopeEl = document.querySelector("#stats-scope");
 
 brandIcon.innerHTML = icons.logo();
 
 let legendClasses = [];
 let bangkokBounds = null;
 let districtLayerByName = new Map();
+let districtPropsByName = new Map();
 let districtSearchLookup = new Map();
 let highlightedLayer = null;
+let selectedDistrict = null; // name_en of the district currently filtering Change Summary, or null
 
 // ---- Map setup ----------------------------------------------------------
 
@@ -133,11 +135,15 @@ function setLoading(isLoading) {
 async function loadAoi() {
   const geojson = await fetchAoi();
   const aoiLayer = L.geoJSON(geojson, {
-    style: { color: "#0f172a", weight: 2, fill: false },
+    style: { color: "#374151", weight: 2, fill: false },
   }).addTo(map);
   bangkokBounds = aoiLayer.getBounds();
   map.fitBounds(bangkokBounds, { padding: [16, 16] });
 }
+
+const DISTRICT_DEFAULT_STYLE = { color: "#374151", weight: 1.5, dashArray: "6,4", fillOpacity: 0.03, fillColor: "#14b8a6" };
+const DISTRICT_HOVER_STYLE = { fillOpacity: 0.55 };
+const DISTRICT_SELECTED_STYLE = { color: "#0d9488", weight: 3, dashArray: null, fillOpacity: 0.35 };
 
 function resetToBangkok() {
   map.closePopup();
@@ -145,8 +151,9 @@ function resetToBangkok() {
     districtGeoJson.resetStyle(highlightedLayer);
     highlightedLayer = null;
   }
-  districtSelect.value = "";
+  selectedDistrict = null;
   districtSearchInput.value = "";
+  updateStatsScope();
   if (bangkokBounds) map.fitBounds(bangkokBounds, { padding: [16, 16] });
 }
 
@@ -164,17 +171,30 @@ function highlightDistrict(layer) {
   if (highlightedLayer && highlightedLayer !== layer) {
     districtGeoJson.resetStyle(highlightedLayer);
   }
-  layer.setStyle({ color: "#0d9488", weight: 3, fillOpacity: 0.18 });
+  layer.setStyle(DISTRICT_SELECTED_STYLE);
   layer.bringToFront();
   highlightedLayer = layer;
 }
 
-function goToDistrict(name_en) {
+function updateStatsScope() {
+  if (selectedDistrict) {
+    const props = districtPropsByName.get(selectedDistrict);
+    statsScopeEl.textContent = `— ${props.name_th} (${props.name_en})`;
+  } else {
+    statsScopeEl.textContent = "";
+  }
+}
+
+function selectDistrict(name_en) {
   const layer = districtLayerByName.get(name_en);
   if (!layer) return;
+  const props = districtPropsByName.get(name_en);
+  selectedDistrict = name_en;
   map.fitBounds(layer.getBounds(), { padding: [24, 24] });
   highlightDistrict(layer);
   layer.openPopup();
+  districtSearchInput.value = `${props.name_th} (${props.name_en})`;
+  updateStatsScope();
 }
 
 let districtGeoJson = null;
@@ -183,14 +203,15 @@ async function loadDistricts() {
   const geojson = await fetchDistricts();
 
   districtGeoJson = L.geoJSON(geojson, {
-    style: { color: "#94a3b8", weight: 1, fillOpacity: 0.03, fillColor: "#14b8a6" },
+    style: DISTRICT_DEFAULT_STYLE,
     onEachFeature: (feature, layer) => {
       const props = feature.properties;
       districtLayerByName.set(props.name_en, layer);
+      districtPropsByName.set(props.name_en, props);
       layer.bindPopup(districtPopupHtml(props), { closeButton: false });
       layer.on("mouseover", () => {
         if (layer !== highlightedLayer) {
-          layer.setStyle({ weight: 2, fillOpacity: 0.12 });
+          layer.setStyle(DISTRICT_HOVER_STYLE);
         }
         layer.openPopup();
       });
@@ -199,12 +220,13 @@ async function loadDistricts() {
           districtGeoJson.resetStyle(layer);
         }
       });
+      layer.on("click", () => selectDistrict(props.name_en));
     },
   }).addTo(map);
 
-  map.on("popupopen", (e) => {
-    const closeBtn = e.popup._contentNode?.querySelector(".popup-close");
-    closeBtn?.addEventListener("click", resetToBangkok, { once: true });
+  // Delegated (not attached per-popup-open, since Leaflet may recreate popup content nodes)
+  document.querySelector("#map").addEventListener("click", (e) => {
+    if (e.target.closest(".popup-close")) resetToBangkok();
   });
 
   const names = geojson.features.map((f) => f.properties).sort((a, b) => a.name_th.localeCompare(b.name_th, "th"));
@@ -217,16 +239,7 @@ async function loadDistricts() {
   }
 
   districtOptionsList.innerHTML = names.map((p) => `<option value="${p.name_th} (${p.name_en})"></option>`).join("");
-
-  districtSelect.innerHTML =
-    '<option value="">-- ทั้งหมด (กรุงเทพมหานคร) --</option>' +
-    names.map((p) => `<option value="${p.name_en}">${p.name_th} (${p.name_en})</option>`).join("");
 }
-
-districtSelect.addEventListener("change", () => {
-  if (districtSelect.value) goToDistrict(districtSelect.value);
-  else resetToBangkok();
-});
 
 districtSearchInput.addEventListener("change", () => {
   const value = districtSearchInput.value.trim().toLowerCase();
@@ -236,8 +249,7 @@ districtSearchInput.addEventListener("change", () => {
   }
   const match = districtSearchLookup.get(value);
   if (match) {
-    districtSelect.value = match;
-    goToDistrict(match);
+    selectDistrict(match);
   } else {
     setStatus(`ไม่พบพื้นที่ "${districtSearchInput.value.trim()}"`, true);
   }
@@ -331,10 +343,11 @@ async function process() {
   }
 
   setLoading(true);
-  setStatus(`Comparing ${t1} to ${t2}... (อาจใช้เวลาถึง 30 วินาที)`);
+  const scopeLabel = selectedDistrict ? districtPropsByName.get(selectedDistrict).name_th : "กรุงเทพมหานคร";
+  setStatus(`Comparing ${t1} to ${t2} (${scopeLabel})... (อาจใช้เวลาถึง 30 วินาที)`);
 
   try {
-    const result = await fetchChange(t1, t2);
+    const result = await fetchChange(t1, t2, selectedDistrict);
 
     if (t1Layer) map.removeLayer(t1Layer);
     if (t2Layer) map.removeLayer(t2Layer);
@@ -345,7 +358,7 @@ async function process() {
     updateSwipeLabels();
 
     renderStats(result);
-    setStatus(`เปรียบเทียบ ${t1} กับ ${t2} เรียบร้อย`);
+    setStatus(`เปรียบเทียบ ${t1} กับ ${t2} (${scopeLabel}) เรียบร้อย`);
   } catch (err) {
     setStatus(`เกิดข้อผิดพลาด: ${err.message}`, true);
   } finally {
