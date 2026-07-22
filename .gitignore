@@ -9,3 +9,5 @@ __pycache__/
 tidy-nomad-*.json
 .env
 .env.*
+# Not a secret — the public Cloud Run backend URL, needed to reproduce GitHub Pages builds
+!frontend/.env.production

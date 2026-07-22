@@ -31,22 +31,40 @@ _VIS_PARAMS = {"min": 0, "max": 8, "palette": _VIS_PALETTE}
 _initialized = False
 
 
+HIGH_VOLUME_ENDPOINT = "https://earthengine-highvolume.googleapis.com"
+
+
 def init_ee():
-    """Authenticate and initialize Earth Engine using a service account key.
+    """Authenticate and initialize Earth Engine.
     Cached at module level so repeated calls are cheap (mirrors @st.cache_resource in the plan).
+
+    Locally, EE_SERVICE_ACCOUNT_KEY points at a downloaded service-account JSON key.
+    On Cloud Run, no key file is needed: the service runs as an Earth-Engine-authorized
+    service account already, so Application Default Credentials picks it up directly.
+    Either way, requests go through the high-volume endpoint, which Google recommends
+    for any backend serving map tiles (as opposed to one-off batch/analysis scripts).
     """
     global _initialized
     if _initialized:
         return
 
-    key_path = os.environ["EE_SERVICE_ACCOUNT_KEY"]
-    key_path = str((Path(__file__).parent / key_path).resolve())
+    project = os.environ.get("EE_PROJECT_ID")
+    key_path_env = os.environ.get("EE_SERVICE_ACCOUNT_KEY")
 
-    with open(key_path, encoding="utf-8") as f:
-        key_data = json.load(f)
+    if key_path_env:
+        key_path = str((Path(__file__).parent / key_path_env).resolve())
+        with open(key_path, encoding="utf-8") as f:
+            key_data = json.load(f)
+        credentials = ee.ServiceAccountCredentials(key_data["client_email"], key_path)
+        ee.Initialize(credentials, project=project, opt_url=HIGH_VOLUME_ENDPOINT)
+    else:
+        import google.auth
 
-    credentials = ee.ServiceAccountCredentials(key_data["client_email"], key_path)
-    ee.Initialize(credentials, project=os.environ.get("EE_PROJECT_ID"))
+        credentials, adc_project = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/earthengine"]
+        )
+        ee.Initialize(credentials, project=project or adc_project, opt_url=HIGH_VOLUME_ENDPOINT)
+
     _initialized = True
 
 
