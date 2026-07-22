@@ -1,0 +1,387 @@
+:root {
+  --bg-sidebar: #faf8f3;
+  --bg-card: #ffffff;
+  --border: #e5e1d8;
+  --accent: #14b8a6;
+  --accent-dark: #0d9488;
+  --accent-tint: #ecfdf9;
+  --text: #1f2937;
+  --text-muted: #6b7280;
+  --danger: #dc2626;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-sidebar);
+  color: var(--text);
+}
+
+#app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ---------------- Sidebar ---------------- */
+
+#sidebar {
+  width: 340px;
+  flex-shrink: 0;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  padding: 1.5rem;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-icon {
+  color: var(--accent-dark);
+  flex-shrink: 0;
+}
+
+#sidebar h1 {
+  font-size: 1.1rem;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0.15rem 0 0;
+}
+
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+select {
+  padding: 0.55rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+button#process-btn {
+  padding: 0.7rem 0.6rem;
+  border-radius: 10px;
+  border: none;
+  background: var(--accent);
+  color: white;
+  font-weight: 600;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+button#process-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+button#process-btn:not(:disabled):hover {
+  background: var(--accent-dark);
+}
+
+.progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  margin-top: -0.5rem;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 40%;
+  background: var(--accent);
+  border-radius: 999px;
+  animation: indeterminate 1.1s ease-in-out infinite;
+}
+
+@keyframes indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+#status {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  min-height: 1.2em;
+  margin: 0;
+}
+
+#status.error {
+  color: var(--danger);
+}
+
+.panel {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+}
+
+.panel h2 {
+  font-size: 0.95rem;
+  margin: 0 0 0.75rem;
+}
+
+.panel h3 {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: 1rem 0 0.5rem;
+}
+
+.legend-hint {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  margin: -0.4rem 0 0.75rem;
+}
+
+/* ---------------- Stat cards ---------------- */
+
+#stat-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.stat-icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  background: var(--accent-tint);
+  color: var(--accent-dark);
+}
+
+.stat-card.highlight {
+  background: var(--accent-tint);
+  border-color: var(--accent);
+}
+
+.stat-card.highlight .stat-icon {
+  background: var(--accent);
+  color: white;
+}
+
+.stat-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stat-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.stat-label strong {
+  color: var(--accent-dark);
+}
+
+.stat-value {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.stat-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+/* ---------------- Transitions & legend lists ---------------- */
+
+#transitions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  font-size: 0.82rem;
+}
+
+#transitions-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+#transitions-list li strong {
+  margin-left: auto;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.transition-icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.transition-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+#legend-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+}
+
+.legend-en {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+/* ---------------- Map ---------------- */
+
+#map-container {
+  position: relative;
+  flex: 1;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+  background: #eef1f4;
+}
+
+#time-slider-card {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.1);
+  padding: 0.6rem 1rem;
+}
+
+.swipe-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+#swipe-slider {
+  width: 180px;
+  accent-color: var(--accent);
+}
+
+/* Leaflet control restyling to match card aesthetic */
+.leaflet-bar,
+.leaflet-control-layers {
+  border-radius: 10px !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12) !important;
+  border: 1px solid var(--border) !important;
+  overflow: hidden;
+}
+
+.fullscreen-control a,
+.leaflet-bar a {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  color: var(--text) !important;
+}
+
+.fullscreen-control a svg {
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 720px) {
+  #app {
+    flex-direction: column;
+  }
+  #sidebar {
+    width: 100%;
+    height: 50%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  #map-container {
+    height: 50%;
+  }
+  #time-slider-card {
+    top: auto;
+    bottom: 16px;
+    right: 50%;
+    transform: translateX(50%);
+  }
+}

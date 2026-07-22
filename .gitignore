@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.local
+__pycache__/
+*.pyc
+
+# Secrets — GCP service account keys etc.
+*.json.key
+tidy-nomad-*.json
+.env
+.env.*
