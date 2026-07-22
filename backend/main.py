@@ -64,6 +64,12 @@ def get_aoi():
         return json.load(f)
 
 
+@app.get("/api/districts")
+def get_districts():
+    with open(pipeline.DATA_DIR / "bangkok_districts.geojson", encoding="utf-8") as f:
+        return json.load(f)
+
+
 @app.get("/api/legend")
 def get_legend():
     return {"classes": pipeline.LULC_CLASSES, "min_year": MIN_YEAR, "max_year": MAX_YEAR}

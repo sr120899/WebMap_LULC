@@ -175,6 +175,62 @@ button#process-btn:not(:disabled):hover {
   margin: -0.4rem 0 0.75rem;
 }
 
+#district-search-panel {
+  border-top: none;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+#district-search-input {
+  padding: 0.55rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.88rem;
+  width: 100%;
+}
+
+/* Leaflet popup content for district hover/search details */
+.district-popup {
+  position: relative;
+  padding-right: 0.5rem;
+  min-width: 140px;
+}
+
+.district-popup h4 {
+  margin: 0 1.4rem 0.2rem 0;
+  font-size: 0.9rem;
+}
+
+.district-popup p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.district-popup .popup-close {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 50%;
+  background: var(--border);
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.district-popup .popup-close:hover {
+  background: var(--danger);
+  color: white;
+}
+
 /* ---------------- Stat cards ---------------- */
 
 #stat-cards {

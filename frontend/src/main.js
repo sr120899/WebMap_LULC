@@ -1,7 +1,7 @@
 import "./style.css";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
-import { fetchAoi, fetchLegend, fetchChange } from "./api.js";
+import { fetchAoi, fetchDistricts, fetchLegend, fetchChange } from "./api.js";
 import { icons } from "./icons.js";
 
 const BANGKOK_CENTER = [13.7563, 100.5018];
@@ -32,10 +32,17 @@ const swipeSlider = document.querySelector("#swipe-slider");
 const swipeLabelT1 = document.querySelector("#swipe-label-t1");
 const swipeLabelT2 = document.querySelector("#swipe-label-t2");
 const brandIcon = document.querySelector("#brand-icon");
+const districtSearchInput = document.querySelector("#district-search-input");
+const districtOptionsList = document.querySelector("#district-options");
+const districtSelect = document.querySelector("#district-select");
 
 brandIcon.innerHTML = icons.logo();
 
 let legendClasses = [];
+let bangkokBounds = null;
+let districtLayerByName = new Map();
+let districtSearchLookup = new Map();
+let highlightedLayer = null;
 
 // ---- Map setup ----------------------------------------------------------
 
@@ -61,7 +68,7 @@ const basemaps = {
   ),
 };
 
-basemaps["Light (Positron)"].addTo(map);
+basemaps["OpenStreetMap"].addTo(map);
 L.control.layers(basemaps, null, { position: "topleft" }).addTo(map);
 
 const FullscreenControl = L.Control.extend({
@@ -128,8 +135,113 @@ async function loadAoi() {
   const aoiLayer = L.geoJSON(geojson, {
     style: { color: "#0f172a", weight: 2, fill: false },
   }).addTo(map);
-  map.fitBounds(aoiLayer.getBounds(), { padding: [16, 16] });
+  bangkokBounds = aoiLayer.getBounds();
+  map.fitBounds(bangkokBounds, { padding: [16, 16] });
 }
+
+function resetToBangkok() {
+  map.closePopup();
+  if (highlightedLayer) {
+    districtGeoJson.resetStyle(highlightedLayer);
+    highlightedLayer = null;
+  }
+  districtSelect.value = "";
+  districtSearchInput.value = "";
+  if (bangkokBounds) map.fitBounds(bangkokBounds, { padding: [16, 16] });
+}
+
+function districtPopupHtml(props) {
+  return `
+    <div class="district-popup">
+      <button type="button" class="popup-close" aria-label="ปิดและกลับไปกรุงเทพมหานคร">&times;</button>
+      <h4>${props.name_th}</h4>
+      <p>${props.name_en}</p>
+    </div>
+  `;
+}
+
+function highlightDistrict(layer) {
+  if (highlightedLayer && highlightedLayer !== layer) {
+    districtGeoJson.resetStyle(highlightedLayer);
+  }
+  layer.setStyle({ color: "#0d9488", weight: 3, fillOpacity: 0.18 });
+  layer.bringToFront();
+  highlightedLayer = layer;
+}
+
+function goToDistrict(name_en) {
+  const layer = districtLayerByName.get(name_en);
+  if (!layer) return;
+  map.fitBounds(layer.getBounds(), { padding: [24, 24] });
+  highlightDistrict(layer);
+  layer.openPopup();
+}
+
+let districtGeoJson = null;
+
+async function loadDistricts() {
+  const geojson = await fetchDistricts();
+
+  districtGeoJson = L.geoJSON(geojson, {
+    style: { color: "#94a3b8", weight: 1, fillOpacity: 0.03, fillColor: "#14b8a6" },
+    onEachFeature: (feature, layer) => {
+      const props = feature.properties;
+      districtLayerByName.set(props.name_en, layer);
+      layer.bindPopup(districtPopupHtml(props), { closeButton: false });
+      layer.on("mouseover", () => {
+        if (layer !== highlightedLayer) {
+          layer.setStyle({ weight: 2, fillOpacity: 0.12 });
+        }
+        layer.openPopup();
+      });
+      layer.on("mouseout", () => {
+        if (layer !== highlightedLayer) {
+          districtGeoJson.resetStyle(layer);
+        }
+      });
+    },
+  }).addTo(map);
+
+  map.on("popupopen", (e) => {
+    const closeBtn = e.popup._contentNode?.querySelector(".popup-close");
+    closeBtn?.addEventListener("click", resetToBangkok, { once: true });
+  });
+
+  const names = geojson.features.map((f) => f.properties).sort((a, b) => a.name_th.localeCompare(b.name_th, "th"));
+
+  for (const p of names) {
+    const display = `${p.name_th} (${p.name_en})`;
+    districtSearchLookup.set(display.toLowerCase(), p.name_en);
+    districtSearchLookup.set(p.name_th.toLowerCase(), p.name_en);
+    districtSearchLookup.set(p.name_en.toLowerCase(), p.name_en);
+  }
+
+  districtOptionsList.innerHTML = names.map((p) => `<option value="${p.name_th} (${p.name_en})"></option>`).join("");
+
+  districtSelect.innerHTML =
+    '<option value="">-- ทั้งหมด (กรุงเทพมหานคร) --</option>' +
+    names.map((p) => `<option value="${p.name_en}">${p.name_th} (${p.name_en})</option>`).join("");
+}
+
+districtSelect.addEventListener("change", () => {
+  if (districtSelect.value) goToDistrict(districtSelect.value);
+  else resetToBangkok();
+});
+
+districtSearchInput.addEventListener("change", () => {
+  const value = districtSearchInput.value.trim().toLowerCase();
+  if (!value) {
+    resetToBangkok();
+    return;
+  }
+  const match = districtSearchLookup.get(value);
+  if (match) {
+    districtSelect.value = match;
+    goToDistrict(match);
+  } else {
+    setStatus(`ไม่พบพื้นที่ "${districtSearchInput.value.trim()}"`, true);
+  }
+});
 
 async function loadLegend() {
   const { classes, min_year, max_year } = await fetchLegend();
@@ -144,7 +256,7 @@ async function loadLegend() {
       select.appendChild(opt);
     }
   }
-  yearT1Select.value = Math.max(min_year, max_year - 3);
+  yearT1Select.value = min_year;
   yearT2Select.value = max_year;
   updateSwipeLabels();
 
@@ -245,7 +357,8 @@ processBtn.addEventListener("click", process);
 
 async function init() {
   try {
-    await Promise.all([loadAoi(), loadLegend()]);
+    await loadAoi();
+    await Promise.all([loadDistricts(), loadLegend()]);
     setStatus('เลือกปีแล้วกด "Run Change Detection" เพื่อเริ่มต้น');
   } catch (err) {
     setStatus(`เชื่อมต่อ backend ไม่ได้: ${err.message}`, true);

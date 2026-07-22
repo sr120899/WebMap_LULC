@@ -10,5 +10,6 @@ async function getJson(path) {
 }
 
 export const fetchAoi = () => getJson("/api/aoi");
+export const fetchDistricts = () => getJson("/api/districts");
 export const fetchLegend = () => getJson("/api/legend");
 export const fetchChange = (t1, t2) => getJson(`/api/change?t1=${t1}&t2=${t2}`);
