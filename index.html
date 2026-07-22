@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LULC Change Platform</title>
+    <script type="module" crossorigin src="/WebMap_LULC/assets/index-D5T6iBwb.js"></script>
+    <link rel="stylesheet" crossorigin href="/WebMap_LULC/assets/index--I6d2W4z.css">
+  </head>
+  <body>
+    <div id="app">
+      <aside id="sidebar">
+        <header class="brand">
+          <span id="brand-icon" class="brand-icon"></span>
+          <div>
+            <h1>LULC Change Platform</h1>
+            <p class="subtitle">ตรวจวัดการเปลี่ยนแปลงการใช้ที่ดิน · กรุงเทพมหานคร</p>
+          </div>
+        </header>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="year-t1">Time 1 (Past)</label>
+            <select id="year-t1"></select>
+          </div>
+          <div class="field">
+            <label for="year-t2">Time 2 (Future)</label>
+            <select id="year-t2"></select>
+          </div>
+        </div>
+
+        <button id="process-btn" type="button">Run Change Detection</button>
+
+        <div id="progress-track" class="progress-track" hidden>
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <p id="status" role="status"></p>
+
+        <section id="stats" class="panel" hidden>
+          <h2>Change Summary</h2>
+          <div id="stat-cards"></div>
+          <h3>Main Change Transitions</h3>
+          <ul id="transitions-list"></ul>
+        </section>
+
+        <section id="legend" class="panel">
+          <h2>Legend</h2>
+          <p class="legend-hint">สีบนแผนที่ = ประเภทการใช้ที่ดิน (Dynamic World V1, ความละเอียด 10 ม.)</p>
+          <ul id="legend-list"></ul>
+        </section>
+      </aside>
+
+      <main id="map-container">
+        <div id="map"></div>
+
+        <div id="time-slider-card">
+          <span id="swipe-label-t1" class="swipe-label">T1</span>
+          <input type="range" id="swipe-slider" min="0" max="100" value="50" aria-label="Swipe between T1 and T2" />
+          <span id="swipe-label-t2" class="swipe-label">T2</span>
+        </div>
+      </main>
+    </div>
+  </body>
+</html>
