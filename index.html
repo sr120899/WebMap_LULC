@@ -4,8 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LULC Change Platform</title>
-    <script type="module" crossorigin src="/WebMap_LULC/assets/index-D5T6iBwb.js"></script>
-    <link rel="stylesheet" crossorigin href="/WebMap_LULC/assets/index--I6d2W4z.css">
+    <script type="module" crossorigin src="/WebMap_LULC/assets/index-TyGIbnn6.js"></script>
+    <link rel="stylesheet" crossorigin href="/WebMap_LULC/assets/index-BI3_D4Nb.css">
   </head>
   <body>
     <div id="app">
@@ -17,6 +17,26 @@
             <p class="subtitle">ตรวจวัดการเปลี่ยนแปลงการใช้ที่ดิน · กรุงเทพมหานคร</p>
           </div>
         </header>
+
+        <section class="panel" id="district-search-panel">
+          <h2>ค้นหาพื้นที่รายเขต</h2>
+          <div class="field">
+            <label for="district-search-input">พิมพ์ค้นหา</label>
+            <input
+              id="district-search-input"
+              list="district-options"
+              placeholder="เช่น จตุจักร หรือ Chatuchak"
+              autocomplete="off"
+            />
+            <datalist id="district-options"></datalist>
+          </div>
+          <div class="field">
+            <label for="district-select">หรือเลือกจากรายการ</label>
+            <select id="district-select">
+              <option value="">-- ทั้งหมด (กรุงเทพมหานคร) --</option>
+            </select>
+          </div>
+        </section>
 
         <div class="field-row">
           <div class="field">
