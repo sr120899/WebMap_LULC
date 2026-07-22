@@ -130,6 +130,22 @@ function setLoading(isLoading) {
   processBtn.disabled = isLoading;
 }
 
+// Drops any previously computed T1/T2 tile layers and stats — called whenever the
+// area filter changes (reset to Bangkok, or a different district picked), since a
+// result computed for the old area no longer matches the new one.
+function clearResults() {
+  if (t1Layer) {
+    map.removeLayer(t1Layer);
+    t1Layer = null;
+  }
+  if (t2Layer) {
+    map.removeLayer(t2Layer);
+    t2Layer = null;
+  }
+  statsSection.hidden = true;
+  setStatus('เลือกปีแล้วกด "Run Change Detection" เพื่อเริ่มต้น');
+}
+
 // ---- Data loading -----------------------------------------------------
 
 async function loadAoi() {
@@ -154,6 +170,7 @@ function resetToBangkok() {
   selectedDistrict = null;
   districtSearchInput.value = "";
   updateStatsScope();
+  clearResults();
   if (bangkokBounds) map.fitBounds(bangkokBounds, { padding: [16, 16] });
 }
 
@@ -189,12 +206,14 @@ function selectDistrict(name_en) {
   const layer = districtLayerByName.get(name_en);
   if (!layer) return;
   const props = districtPropsByName.get(name_en);
+  const isDifferentArea = selectedDistrict !== name_en;
   selectedDistrict = name_en;
   map.fitBounds(layer.getBounds(), { padding: [24, 24] });
   highlightDistrict(layer);
   layer.openPopup();
   districtSearchInput.value = `${props.name_th} (${props.name_en})`;
   updateStatsScope();
+  if (isDifferentArea) clearResults();
 }
 
 let districtGeoJson = null;
